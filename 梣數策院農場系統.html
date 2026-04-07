@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>梣‧數策院 · 農場系統</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Playfair+Display:wght@700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0c0b09;--bg2:#161410;--bg3:#1e1b14;--card:#201d16;
+  --amber:#EF9F27;--a2:#FAC775;--a3:#FAEEDA;--a4:#2e1800;--a5:#412402;
+  --teal:#5DCAA5;--t2:#E1F5EE;--t3:#04342C;
+  --coral:#F0997B;--c2:#FAECE7;--c3:#4A1B0C;
+  --purple:#AFA9EC;--p2:#EEEDFE;--p3:#26215C;
+  --green:#97C459;--g2:#EAF3DE;--g3:#173404;
+  --text:#f0ebe0;--text2:#9a9280;--text3:#5a5448;
+  --border:#28241c;--border2:#38332a;
+  --r:14px;--rsm:8px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* HEADER */
+.header{background:var(--bg2);padding:10px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:10px}
+.back-btn{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;font-family:'Noto Sans TC',sans-serif}
+.header-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--amber)}
+.energy-pill{background:var(--a4);border:0.5px solid var(--amber);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--amber);display:flex;align-items:center;gap:5px}
+.energy-icon{font-size:14px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px}
+.main::-webkit-scrollbar{width:3px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* FARM SELECT */
+.farm-select{padding:16px}
+.farm-select-title{font-size:14px;color:var(--text2);margin-bottom:12px;text-align:center}
+.farm-types{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px}
+.farm-type-card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all 0.2s;text-align:center;position:relative;overflow:hidden}
+.farm-type-card:active{transform:scale(0.97)}
+.farm-type-card.selected{border-color:var(--amber);background:var(--a4)}
+.farm-type-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.ftc-veg::before{background:var(--green)}
+.ftc-pet::before{background:var(--purple)}
+.ftc-tree::before{background:var(--amber)}
+.ftc-hero::before{background:var(--coral)}
+.farm-type-ico{font-size:36px;margin-bottom:8px;line-height:1;display:block}
+.farm-type-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.farm-type-desc{font-size:10px;color:var(--text2);line-height:1.5}
+.farm-type-reward{font-size:10px;margin-top:6px;padding:2px 8px;border-radius:10px;display:inline-block}
+.r-g{background:var(--g3);color:var(--green)}
+.r-p{background:var(--p3);color:var(--purple)}
+.r-a{background:var(--a5);color:var(--amber)}
+.r-c{background:var(--c3);color:var(--coral)}
+.select-btn{width:100%;padding:13px;background:var(--amber);color:var(--a4);border:none;border-radius:var(--r);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;margin-top:4px}
+.select-btn:active{transform:scale(0.98)}
+
+/* FARM MAIN */
+.farm-main{display:none;padding:16px;flex-direction:column;gap:14px}
+.farm-main.active{display:flex}
+
+/* FARM SCENE */
+.farm-scene{background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r);overflow:hidden;position:relative;height:240px;cursor:pointer}
+.farm-sky{position:absolute;top:0;left:0;right:0;height:60%;background:#0a1a2a}
+.farm-ground{position:absolute;bottom:0;left:0;right:0;height:45%;background:#1a1000;border-top:2px solid #2a1800}
+.sun-moon{position:absolute;top:14px;right:20px;font-size:28px;animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.star-f{position:absolute;width:3px;height:3px;border-radius:50%;background:#FAEEDA;animation:twinkle 2s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:0.3}50%{opacity:1}}
+.farm-plant{position:absolute;bottom:40%;left:50%;transform:translateX(-50%);text-align:center;animation:plantSway 3s ease-in-out infinite}
+@keyframes plantSway{0%,100%{transform:translateX(-50%) rotate(-2deg)}50%{transform:translateX(-50%) rotate(2deg)}}
+.plant-emoji{font-size:60px;line-height:1;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5))}
+.plant-name{font-size:11px;color:var(--green);margin-top:4px;font-weight:500}
+.farm-info{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:12px}
+.farm-badge{background:rgba(0,0,0,0.6);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px}
+.health-bar{position:absolute;top:12px;left:14px;right:14px;height:6px;background:rgba(0,0,0,0.4);border-radius:3px;overflow:hidden}
+.health-fill{height:100%;border-radius:3px;background:var(--green);transition:width 0.5s}
+.tap-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,0.15);font-size:12px;pointer-events:none;transition:opacity 0.3s}
+
+/* PROGRESS */
+.progress-section{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:14px}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.prog-title{font-size:13px;font-weight:500;color:var(--text)}
+.prog-level{font-size:12px;color:var(--amber);background:var(--a5);padding:2px 10px;border-radius:10px}
+.prog-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:6px}
+.prog-fill{height:100%;border-radius:4px;background:var(--amber);transition:width 0.8s ease}
+.prog-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3)}
+.stages{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.stages::-webkit-scrollbar{display:none}
+.stage{flex-shrink:0;text-align:center;padding:6px 8px;border-radius:var(--rsm);border:0.5px solid var(--border);background:var(--bg3);min-width:54px}
+.stage.done{border-color:var(--green);background:var(--g3)}
+.stage.current{border-color:var(--amber);background:var(--a4);animation:stagePulse 2s ease-in-out infinite}
+@keyframes stagePulse{0%,100%{border-color:var(--amber)}50%{border-color:var(--a2)}}
+.stage-ico{font-size:18px;line-height:1;margin-bottom:3px}
+.stage-name{font-size:9px;color:var(--text2)}
+.stage.done .stage-name{color:var(--green)}
+.stage.current .stage-name{color:var(--amber)}
+
+/* TASKS */
+.tasks-section{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:14px}
+.tasks-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.tasks-reset{font-size:10px;color:var(--text3)}
+.task-item{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg3);border-radius:var(--rsm);border:0.5px solid var(--border);margin-bottom:7px;transition:all 0.2s}
+.task-item:last-child{margin-bottom:0}
+.task-item.done{opacity:0.5;border-color:var(--green)}
+.task-ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.task-body{flex:1}
+.task-name{font-size:12px;font-weight:500;color:var(--text)}
+.task-desc{font-size:10px;color:var(--text2);margin-top:1px}
+.task-reward{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--amber);font-weight:500;flex-shrink:0}
+.task-check{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.2s;font-size:12px}
+.task-item.done .task-check{background:var(--g3);border-color:var(--green);color:var(--green)}
+.task-check:active{transform:scale(0.9)}
+
+/* ACTIONS */
+.actions-row{display:flex;gap:8px}
+.action-btn{flex:1;padding:11px;border-radius:var(--rsm);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Noto Sans TC',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all 0.15s}
+.action-btn:active{transform:scale(0.96)}
+.action-btn.primary{background:var(--t3);border-color:var(--teal);color:var(--teal)}
+.action-btn.warn{background:var(--c3);border-color:var(--coral);color:var(--coral)}
+.action-ico{font-size:20px;line-height:1}
+
+/* INVITE */
+.invite-section{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:14px}
+.invite-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.invite-desc{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.invite-code-row{display:flex;gap:8px;align-items:center}
+.invite-code{flex:1;background:var(--a4);border:1px dashed var(--amber);border-radius:var(--rsm);padding:10px 14px;font-size:18px;font-weight:700;color:var(--amber);font-family:'Playfair Display',serif;letter-spacing:3px;text-align:center}
+.copy-code-btn{padding:10px 14px;background:var(--amber);color:var(--a4);border:none;border-radius:var(--rsm);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif;white-space:nowrap;transition:all 0.15s}
+.copy-code-btn:active{transform:scale(0.96)}
+.invite-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.invite-stat{background:var(--bg3);border-radius:var(--rsm);padding:8px;text-align:center}
+.invite-stat-n{font-size:18px;font-weight:700;color:var(--amber);font-family:'Noto Sans TC',sans-serif}
+.invite-stat-l{font-size:9px;color:var(--text3);margin-top:2px}
+
+/* WILDNESS WARNING */
+.wilt-warning{background:#1a0000;border:0.5px solid var(--coral);border-radius:var(--r);padding:12px 14px;display:none;align-items:center;gap:10px}
+.wilt-warning.show{display:flex}
+.wilt-ico{font-size:24px;flex-shrink:0;animation:shake 0.5s ease-in-out infinite alternate}
+@keyframes shake{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.wilt-text{flex:1;font-size:12px;color:var(--coral);line-height:1.6}
+.wilt-btn{padding:8px 12px;background:var(--c3);border:0.5px solid var(--coral);border-radius:var(--rsm);color:var(--coral);font-size:12px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;flex-shrink:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg2);border:0.5px solid var(--amber);color:var(--amber);font-size:12px;padding:8px 18px;border-radius:20px;z-index:600;display:none;white-space:nowrap;pointer-events:none}
+.toast.show{display:block;animation:ftio 2.4s ease forwards}
+@keyframes ftio{0%{opacity:0;transform:translateX(-50%) translateY(5px)}12%{opacity:1;transform:translateX(-50%) translateY(0)}82%{opacity:1}100%{opacity:0}}
+
+/* REWARD POPUP */
+.reward-popup{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.reward-popup.open{display:flex}
+.reward-box{background:var(--bg2);border:0.5px solid var(--amber);border-radius:var(--r);padding:22px;width:100%;max-width:300px;text-align:center;animation:popin 0.25s ease}
+@keyframes popin{from{transform:scale(0.8);opacity:0}to{transform:scale(1);opacity:1}}
+.reward-ico{font-size:56px;margin-bottom:12px;line-height:1;animation:bounce 0.6s ease}
+@keyframes bounce{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.reward-title{font-size:18px;font-weight:700;color:var(--amber);margin-bottom:6px;font-family:'Playfair Display',serif}
+.reward-msg{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:16px}
+.reward-close{width:100%;padding:11px;background:var(--amber);color:var(--a4);border:none;border-radius:var(--rsm);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans TC',sans-serif}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <div class="header-title" id="farm-header-title">🌱 我的農場</div>
+  </div>
+  <div class="energy-pill">
+    <span class="energy-icon">⚡</span>
+    <span id="energy-display">0</span> 能量
+  </div>
+</div>
+
+<div class="main" id="main">
+
+  <!-- 選農場 -->
+  <div class="farm-select" id="farm-select">
+    <div class="farm-select-title">✨ 選擇您的農場，開始養成之旅！</div>
+    <div class="farm-types">
+      <div class="farm-type-card ftc-veg" onclick="selectType('veg',this)">
+        <span class="farm-type-ico">🥬</span>
+        <div class="farm-type-name">蔬菜農場</div>
+        <div class="farm-type-desc">種植蔬菜，收成折抵月費，可邀朋友幫忙澆水</div>
+        <span class="farm-type-reward r-g">🌾 收成→折抵月費</span>
+      </div>
+      <div class="farm-type-card ftc-pet" onclick="selectType('pet',this)">
+        <span class="farm-type-ico">🥚</span>
+        <div class="farm-type-name">神奇寵物蛋</div>
+        <div class="farm-type-desc">孵化稀有寵物，滿等可折抵月費，朋友加溫更快</div>
+        <span class="farm-type-reward r-p">🐣 滿級→折抵月費</span>
+      </div>
+      <div class="farm-type-card ftc-tree" onclick="selectType('tree',this)">
+        <span class="farm-type-ico">🌱</span>
+        <div class="farm-type-name">梣樹成長</div>
+        <div class="farm-type-desc">種一棵梣樹，朋友加入讓樹長大，結果折抵月費</div>
+        <span class="farm-type-reward r-a">🍃 結果→折抵月費</span>
+      </div>
+      <div class="farm-type-card ftc-hero" onclick="selectType('hero',this)">
+        <span class="farm-type-ico">⚔️</span>
+        <div class="farm-type-name">採購英雄</div>
+        <div class="farm-type-desc">組隊打倒英語怪獸，全隊共享獎勵，BOSS掉落稀有道具</div>
+        <span class="farm-type-reward r-c">💥 打BOSS→全隊折抵</span>
+      </div>
+    </div>
+    <button class="select-btn" id="select-btn" onclick="confirmSelect()" style="opacity:0.4;pointer-events:none">選好了，開始養成！🌱</button>
+  </div>
+
+  <!-- 農場主頁 -->
+  <div class="farm-main" id="farm-main">
+
+    <!-- 枯萎警告 -->
+    <div class="wilt-warning" id="wilt-warning">
+      <div class="wilt-ico">⚠️</div>
+      <div class="wilt-text" id="wilt-text">您已超過3天沒有照顧農場，作物開始枯萎！快來澆水！</div>
+      <button class="wilt-btn" onclick="waterNow()">澆水！</button>
+    </div>
+
+    <!-- 農場場景 -->
+    <div class="farm-scene" onclick="tapFarm()">
+      <div class="farm-sky"></div>
+      <div class="farm-ground"></div>
+      <div class="health-bar"><div class="health-fill" id="health-fill"></div></div>
+      <!-- Stars -->
+      <div class="star-f" style="top:20px;left:40px;animation-delay:0s"></div>
+      <div class="star-f" style="top:35px;left:120px;animation-delay:0.5s"></div>
+      <div class="star-f" style="top:15px;left:200px;animation-delay:1s"></div>
+      <div class="star-f" style="top:40px;left:280px;animation-delay:0.3s"></div>
+      <div class="sun-moon" id="sun-moon">🌙</div>
+      <div class="farm-plant" id="farm-plant">
+        <span class="plant-emoji" id="plant-emoji">🌱</span>
+        <div class="plant-name" id="plant-name">剛開始種植</div>
+      </div>
+      <div class="farm-info">
+        <div class="farm-badge">❤️ <span id="health-display">100</span>%</div>
+        <div class="farm-badge">⬆️ Lv.<span id="level-display">1</span></div>
+        <div class="farm-badge">🌾 <span id="harvest-display">0</span> 收成</div>
+      </div>
+      <div class="tap-hint" id="tap-hint">點擊照顧農場</div>
+    </div>
+
+    <!-- 成長進度 -->
+    <div class="progress-section">
+      <div class="prog-header">
+        <div class="prog-title" id="prog-title">🌱 成長進度</div>
+        <div class="prog-level" id="prog-level">Lv.1</div>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:5%"></div></div>
+      <div class="prog-labels">
+        <span id="prog-exp">0 / 100 經驗值</span>
+        <span id="prog-next">下一級需要更多學習！</span>
+      </div>
+      <div class="stages" id="stages"></div>
+    </div>
+
+    <!-- 今日任務 -->
+    <div class="tasks-section">
+      <div class="tasks-title">
+        <span>📋 今日學習任務</span>
+        <span class="tasks-reset" id="tasks-reset">明天重置</span>
+      </div>
+      <div id="task-list"></div>
+    </div>
+
+    <!-- 行動按鈕 -->
+    <div class="actions-row">
+      <button class="action-btn primary" onclick="waterFarm()">
+        <span class="action-ico">💧</span>澆水/餵食
+      </button>
+      <button class="action-btn" onclick="checkHarvest()">
+        <span class="action-ico">🌾</span>查看收成
+      </button>
+      <button class="action-btn warn" onclick="inviteFriend()">
+        <span class="action-ico">👥</span>邀請好友
+      </button>
+    </div>
+
+    <!-- 邀請好友 -->
+    <div class="invite-section">
+      <div class="invite-title">🔗 邀請好友一起學習</div>
+      <div class="invite-desc">好友用您的邀請碼加入，首月享 9 折（省 NT$30）<br>好友付費成功，您獲得 <strong style="color:var(--amber)">$1 美元（約NT$32）</strong> 折抵月費！</div>
+      <div class="invite-code-row">
+        <div class="invite-code" id="invite-code">CHEN2026</div>
+        <button class="copy-code-btn" onclick="copyCode()">📋 複製分享</button>
+      </div>
+      <div class="invite-stats">
+        <div class="invite-stat"><div class="invite-stat-n" id="invited-count">0</div><div class="invite-stat-l">已邀請人數</div></div>
+        <div class="invite-stat"><div class="invite-stat-n" id="earned-credit">$0</div><div class="invite-stat-l">已賺取美元</div></div>
+        <div class="invite-stat"><div class="invite-stat-n" id="pending-credit">$0</div><div class="invite-stat-l">可折抵月費</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- REWARD POPUP -->
+<div class="reward-popup" id="reward-popup">
+  <div class="reward-box">
+    <div class="reward-ico" id="reward-ico">🎉</div>
+    <div class="reward-title" id="reward-title">恭喜！</div>
+    <div class="reward-msg" id="reward-msg"></div>
+    <button class="reward-close" onclick="closeReward()">太棒了！繼續加油 💪</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// 農場資料設定
+// ═══════════════════════════════════════════
+const FARM_CONFIG = {
+  veg: {
+    name:'🥬 蔬菜農場', headerTitle:'🥬 蔬菜農場',
+    stages:[
+      {name:'菜苗',emoji:'🌱',expNeeded:0},
+      {name:'嫩葉',emoji:'🌿',expNeeded:50},
+      {name:'白菜',emoji:'🥬',expNeeded:150},
+      {name:'蘿蔔',emoji:'🥕',expNeeded:300},
+      {name:'番茄',emoji:'🍅',expNeeded:500},
+      {name:'草莓',emoji:'🍓',expNeeded:800},
+      {name:'仙人掌',emoji:'🌵',expNeeded:1200}
+    ],
+    waterEmoji:'💧',waterName:'澆水',waterMsg:'您澆了水，蔬菜長得更好了！',
+    tapMsg:'蔬菜在陽光下茁壯成長 🌱',
+    harvestMsg:'收成蔬菜',
+    deadMsg:'蔬菜枯萎了...',
+    wiltMsg:'您的蔬菜已3天沒澆水，快來照顧！'
+  },
+  pet: {
+    name:'🥚 神奇寵物蛋', headerTitle:'🥚 神奇寵物蛋',
+    stages:[
+      {name:'神秘蛋',emoji:'🥚',expNeeded:0},
+      {name:'裂縫蛋',emoji:'🪺',expNeeded:50},
+      {name:'小雞',emoji:'🐣',expNeeded:150},
+      {name:'小雞雞',emoji:'🐤',expNeeded:300},
+      {name:'小狗',emoji:'🐶',expNeeded:500},
+      {name:'小貓',emoji:'🐱',expNeeded:800},
+      {name:'神龍',emoji:'🐉',expNeeded:1200}
+    ],
+    waterEmoji:'🔥',waterName:'加溫',waterMsg:'您幫蛋加溫了！孵化進度增加！',
+    tapMsg:'蛋在你的關愛下微微震動 🥚',
+    harvestMsg:'寵物滿等',
+    deadMsg:'蛋失去溫度，孵化失敗...',
+    wiltMsg:'您的蛋已3天沒有加溫，快來救牠！'
+  },
+  tree: {
+    name:'🌳 梣樹成長', headerTitle:'🌳 梣樹成長',
+    stages:[
+      {name:'種子',emoji:'🫘',expNeeded:0},
+      {name:'樹芽',emoji:'🌱',expNeeded:50},
+      {name:'小樹',emoji:'🌿',expNeeded:150},
+      {name:'茂盛',emoji:'🌲',expNeeded:300},
+      {name:'開花',emoji:'🌸',expNeeded:500},
+      {name:'結果',emoji:'🍃',expNeeded:800},
+      {name:'梣樹林',emoji:'🌳',expNeeded:1200}
+    ],
+    waterEmoji:'🌧️',waterName:'澆水施肥',waterMsg:'梣樹又長大了一點！',
+    tapMsg:'梣樹在微風中輕輕搖曳 🌳',
+    harvestMsg:'梣樹結果',
+    deadMsg:'梣樹枯萎了...',
+    wiltMsg:'您的梣樹已3天沒有澆水，快來救它！'
+  },
+  hero: {
+    name:'⚔️ 採購英雄', headerTitle:'⚔️ 採購英雄傳',
+    stages:[
+      {name:'新兵',emoji:'🧑',expNeeded:0},
+      {name:'學徒',emoji:'🧑‍💼',expNeeded:50},
+      {name:'採購員',emoji:'💼',expNeeded:150},
+      {name:'協理',emoji:'🏆',expNeeded:300},
+      {name:'經理',emoji:'👔',expNeeded:500},
+      {name:'總監',emoji:'🎯',expNeeded:800},
+      {name:'傳奇',emoji:'👑',expNeeded:1200}
+    ],
+    waterEmoji:'⚔️',waterName:'出擊打怪',waterMsg:'擊敗一隻英語怪獸！經驗+20！',
+    tapMsg:'英雄正在磨練劍技... ⚔️',
+    harvestMsg:'英雄升滿級',
+    deadMsg:'英雄被擊敗，需要復活！',
+    wiltMsg:'您的英雄已3天沒有出擊，技能退化了！'
+  }
+};
+
+const DAILY_TASKS = [
+  {id:'listen',name:'聽今日單字發音',desc:'點擊 5 個單字的聽發音按鈕',ico:'🔊',bg:'#412402',exp:20,done:false},
+  {id:'dialog',name:'練習採購對話',desc:'點擊播放任一對話場景',ico:'💬',bg:'#26215C',exp:25,done:false},
+  {id:'pattern',name:'學習句型框架',desc:'查看任一萬用句型',ico:'🧩',bg:'#04342C',exp:20,done:false},
+  {id:'diary',name:'寫今日英語日記',desc:'在日記頁面寫3句話以上',ico:'✍️',bg:'#173404',exp:35,done:false},
+  {id:'festival',name:'學一個節慶英文',desc:'點開任一節慶查看',ico:'🏮',bg:'#993C1D',exp:15,done:false},
+];
+
+// ═══════════════════════════════════════════
+// 狀態管理
+// ═══════════════════════════════════════════
+function loadFarm(){return JSON.parse(localStorage.getItem('farm_data')||'null');}
+function saveFarm(d){localStorage.setItem('farm_data',JSON.stringify(d));}
+
+function initFarmData(type){
+  const cfg=FARM_CONFIG[type];
+  return {
+    type,name:cfg.name,
+    exp:0,level:1,health:100,
+    harvests:0,lastWatered:Date.now(),
+    lastDaily:0,
+    tasks:DAILY_TASKS.map(t=>({...t,done:false})),
+    invited:parseInt(localStorage.getItem('farm_invited')||'0'),
+    earned:parseFloat(localStorage.getItem('farm_earned')||'0'),
+  };
+}
+
+function generateInviteCode(){
+  const user=JSON.parse(localStorage.getItem('user')||'{}');
+  const name=user.name||'USER';
+  const clean=name.replace(/[^a-zA-Z\u4e00-\u9fff]/g,'').substring(0,4).toUpperCase();
+  return (clean||'CHEN')+'2026';
+}
+
+// ═══════════════════════════════════════════
+// UI 更新
+// ═══════════════════════════════════════════
+let farmData=null;
+
+function getStageIdx(exp,stages){
+  let idx=0;
+  for(let i=stages.length-1;i>=0;i--){if(exp>=stages[i].expNeeded){idx=i;break;}}
+  return idx;
+}
+
+function getNextStage(exp,stages){
+  for(let i=0;i<stages.length;i++){if(exp<stages[i].expNeeded)return stages[i];}
+  return null;
+}
+
+function updateUI(){
+  if(!farmData)return;
+  const cfg=FARM_CONFIG[farmData.type];
+  const stages=cfg.stages;
+  const stageIdx=getStageIdx(farmData.exp,stages);
+  const curStage=stages[stageIdx];
+  const nextStage=getNextStage(farmData.exp,stages);
+  const level=stageIdx+1;
+
+  document.getElementById('farm-header-title').textContent=cfg.headerTitle;
+  document.getElementById('plant-emoji').textContent=curStage.emoji;
+  document.getElementById('plant-name').textContent=curStage.name;
+  document.getElementById('health-display').textContent=Math.round(farmData.health);
+  document.getElementById('level-display').textContent=level;
+  document.getElementById('harvest-display').textContent=farmData.harvests;
+  document.getElementById('health-fill').style.width=farmData.health+'%';
+  document.getElementById('prog-level').textContent='Lv.'+level;
+  document.getElementById('prog-title').textContent=curStage.emoji+' '+curStage.name;
+
+  const expForThisLevel=stageIdx>0?stages[stageIdx].expNeeded:0;
+  const expForNextLevel=nextStage?nextStage.expNeeded:farmData.exp;
+  const expProgress=farmData.exp-expForThisLevel;
+  const expNeeded=expForNextLevel-expForThisLevel;
+  const pct=nextStage?Math.round((expProgress/expNeeded)*100):100;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-exp').textContent=farmData.exp+(nextStage?' / '+expForNextLevel+' 經驗值':' 經驗值（滿級！）');
+  document.getElementById('prog-next').textContent=nextStage?'下一階段：'+nextStage.name+' '+nextStage.emoji:'🎉 已達最高等級！';
+
+  // Stages
+  const stagesEl=document.getElementById('stages');
+  stagesEl.innerHTML=stages.map((s,i)=>{
+    const cls=i<stageIdx?'done':i===stageIdx?'current':'';
+    return`<div class="stage ${cls}"><div class="stage-ico">${s.emoji}</div><div class="stage-name">${s.name}</div></div>`;
+  }).join('');
+
+  // Energy
+  const energy=parseInt(localStorage.getItem('farm_energy')||'0');
+  document.getElementById('energy-display').textContent=energy;
+
+  // Health color
+  const hf=document.getElementById('health-fill');
+  if(farmData.health>60)hf.style.background='var(--green)';
+  else if(farmData.health>30)hf.style.background='var(--amber)';
+  else hf.style.background='var(--coral)';
+
+  // Wilt check
+  const daysSince=Math.floor((Date.now()-farmData.lastWatered)/86400000);
+  const wiltEl=document.getElementById('wilt-warning');
+  const wiltText=document.getElementById('wilt-text');
+  if(daysSince>=3&&farmData.health>0){
+    wiltEl.classList.add('show');
+    wiltText.textContent=daysSince>=5?'⚠️ 緊急！已'+daysSince+'天沒照顧，快要死了！':cfg.wiltMsg;
+  } else {
+    wiltEl.classList.remove('show');
+  }
+
+  // Invite code
+  document.getElementById('invite-code').textContent=generateInviteCode();
+  document.getElementById('invited-count').textContent=farmData.invited;
+  document.getElementById('earned-credit').textContent='$'+farmData.earned.toFixed(0);
+  document.getElementById('pending-credit').textContent='$'+Math.min(farmData.earned,5).toFixed(0);
+
+  // Tasks
+  renderTasks();
+
+  // Day/Night
+  const h=new Date().getHours();
+  document.getElementById('sun-moon').textContent=h>=6&&h<18?'☀️':'🌙';
+  if(h>=6&&h<18){
+    document.querySelector('.farm-sky').style.background='#0a1a3a';
+  }
+}
+
+function renderTasks(){
+  const taskList=document.getElementById('task-list');
+  const today=new Date().toDateString();
+  if(farmData.lastDaily!==today){
+    farmData.tasks=DAILY_TASKS.map(t=>({...t,done:false}));
+    farmData.lastDaily=today;
+    saveFarm(farmData);
+  }
+
+  taskList.innerHTML=farmData.tasks.map((t,i)=>`
+    <div class="task-item ${t.done?'done':''}" id="task-${i}">
+      <div class="task-ico" style="background:${t.bg}">${t.ico}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+      </div>
+      <div class="task-reward">⚡+${t.exp}</div>
+      <div class="task-check" onclick="completeTask(${i})">${t.done?'✓':''}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// 互動功能
+// ═══════════════════════════════════════════
+function tapFarm(){
+  const cfg=FARM_CONFIG[farmData.type];
+  showToast(cfg.tapMsg);
+  const plant=document.getElementById('farm-plant');
+  plant.style.transform='translateX(-50%) scale(1.1)';
+  setTimeout(()=>{plant.style.transform='';},300);
+}
+
+function waterFarm(){
+  const cfg=FARM_CONFIG[farmData.type];
+  if(farmData.health>=100){showToast('已經很健康了，繼續學習獲得更多能量！');return;}
+
+  const energy=parseInt(localStorage.getItem('farm_energy')||'0');
+  if(energy<5){showToast('⚡ 能量不足！完成學習任務獲得能量');return;}
+
+  localStorage.setItem('farm_energy',energy-5);
+  farmData.health=Math.min(100,farmData.health+15);
+  farmData.lastWatered=Date.now();
+  farmData.exp+=10;
+  saveFarm(farmData);
+  updateUI();
+
+  const plant=document.getElementById('farm-plant');
+  plant.style.filter='brightness(1.3)';
+  setTimeout(()=>{plant.style.filter='';},600);
+  showToast(cfg.waterMsg+' ⚡-5');
+  checkLevelUp();
+}
+
+function waterNow(){
+  farmData.health=Math.min(100,farmData.health+20);
+  farmData.lastWatered=Date.now();
+  saveFarm(farmData);
+  updateUI();
+  showToast('✅ 已緊急澆水！農場恢復中...');
+}
+
+function completeTask(idx){
+  if(farmData.tasks[idx].done){showToast('今天已完成這個任務了！');return;}
+  const task=farmData.tasks[idx];
+  farmData.tasks[idx].done=true;
+  const energy=parseInt(localStorage.getItem('farm_energy')||'0')+task.exp;
+  localStorage.setItem('farm_energy',energy);
+  farmData.exp+=task.exp;
+  farmData.health=Math.min(100,farmData.health+5);
+  saveFarm(farmData);
+  updateUI();
+  showReward('⚡','任務完成！',`「${task.name}」完成！\n獲得 ${task.exp} 能量，農場健康+5%`);
+  checkLevelUp();
+}
+
+function checkLevelUp(){
+  const cfg=FARM_CONFIG[farmData.type];
+  const stages=cfg.stages;
+  const newStageIdx=getStageIdx(farmData.exp,stages);
+  if(newStageIdx+1>farmData.level){
+    farmData.level=newStageIdx+1;
+    farmData.harvests++;
+    saveFarm(farmData);
+    const newStage=stages[newStageIdx];
+    setTimeout(()=>{
+      showReward(newStage.emoji,'🎉 升級了！',`您的${cfg.name.replace(/[^\u4e00-\u9fff]/g,'')}升級到「${newStage.name}」了！\n繼續學習，收成可折抵月費！`);
+    },500);
+  }
+}
+
+function checkHarvest(){
+  const cfg=FARM_CONFIG[farmData.type];
+  const stages=cfg.stages;
+  const stageIdx=getStageIdx(farmData.exp,stages);
+  if(stageIdx<stages.length-1){
+    const next=stages[stageIdx+1];
+    showToast('還沒到收成時間！繼續學習到 '+next.name+' '+next.emoji+' 才能收成');
+  } else {
+    showReward('🎊','可以收成了！',`您的農場已達最高等級！\n累積收成 ${farmData.harvests} 次\n目前可折抵月費：NT$${farmData.harvests*30}`);
+  }
+}
+
+function inviteFriend(){
+  const code=generateInviteCode();
+  const url='https://yuchen1114066.github.io/english-app?ref='+code;
+  const text=`🌱 我在梣‧數策院學商業英語，用我的邀請碼 【${code}】 加入，首月享9折優惠！\n👉 ${url}`;
+  if(navigator.share){
+    navigator.share({title:'梣‧數策院商業英語',text,url}).catch(()=>copyToClipboard(text));
+  } else {
+    copyToClipboard(text);
+    showToast('📋 邀請連結已複製！去貼給朋友吧！');
+  }
+}
+
+function copyCode(){
+  const code=generateInviteCode();
+  const url='https://yuchen1114066.github.io/english-app?ref='+code;
+  const text=`🌱 梣‧數策院商業英語學習平台\n邀請碼：【${code}】首月9折\n👉 ${url}`;
+  copyToClipboard(text);
+  showToast('📋 邀請文案已複製！去分享給朋友！');
+}
+
+function copyToClipboard(text){
+  navigator.clipboard.writeText(text).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+  });
+}
+
+// ═══════════════════════════════════════════
+// 農場選擇
+// ═══════════════════════════════════════════
+let selectedType=null;
+function selectType(type,el){
+  selectedType=type;
+  document.querySelectorAll('.farm-type-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn=document.getElementById('select-btn');
+  btn.style.opacity='1';btn.style.pointerEvents='auto';
+  btn.textContent='選好了，開始養 '+FARM_CONFIG[type].name+'！';
+}
+
+function confirmSelect(){
+  if(!selectedType)return;
+  farmData=initFarmData(selectedType);
+  saveFarm(farmData);
+  document.getElementById('farm-select').style.display='none';
+  document.getElementById('farm-main').classList.add('active');
+  updateUI();
+  showReward(FARM_CONFIG[selectedType].stages[0].emoji,'農場建立成功！','您的'+FARM_CONFIG[selectedType].name+'已經開始了！\n每天完成學習任務，給農場能量，讓它茁壯成長！');
+}
+
+// ═══════════════════════════════════════════
+// Toast & Reward
+// ═══════════════════════════════════════════
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+  if(toastTimer)clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function showReward(ico,title,msg){
+  document.getElementById('reward-ico').textContent=ico;
+  document.getElementById('reward-title').textContent=title;
+  document.getElementById('reward-msg').textContent=msg;
+  document.getElementById('reward-popup').classList.add('open');
+}
+function closeReward(){document.getElementById('reward-popup').classList.remove('open');}
+
+function goBack(){
+  if(window.history.length>1)window.history.back();
+  else window.close();
+}
+
+// ═══════════════════════════════════════════
+// 健康值自動衰減
+// ═══════════════════════════════════════════
+function decayHealth(){
+  if(!farmData)return;
+  const daysSince=Math.floor((Date.now()-farmData.lastWatered)/86400000);
+  if(daysSince>=1){
+    farmData.health=Math.max(0,farmData.health-daysSince*8);
+    saveFarm(farmData);
+    updateUI();
+  }
+}
+
+// ═══════════════════════════════════════════
+// 檢查邀請碼參數
+// ═══════════════════════════════════════════
+function checkReferral(){
+  const params=new URLSearchParams(window.location.search);
+  const ref=params.get('ref');
+  if(ref&&ref!==generateInviteCode()){
+    localStorage.setItem('referral_code',ref);
+    showToast('🎁 使用邀請碼 '+ref+'，首月享9折！');
+  }
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+window.addEventListener('load',()=>{
+  checkReferral();
+  farmData=loadFarm();
+  if(farmData){
+    decayHealth();
+    document.getElementById('farm-select').style.display='none';
+    document.getElementById('farm-main').classList.add('active');
+    updateUI();
+  } else {
+    document.getElementById('farm-select').style.display='block';
+  }
+});
+</script>
+</body>
+</html>
