@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>梣‧數策院 AI 客服</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0c0b09;--bg2:#161410;--bg3:#1e1b14;--card:#201d16;
+  --amber:#EF9F27;--a2:#FAC775;--a4:#2e1800;--a5:#412402;
+  --teal:#5DCAA5;--t3:#04342C;
+  --text:#f0ebe0;--text2:#9a9280;--text3:#5a5448;
+  --border:#28241c;--border2:#38332a;
+  --r:14px;--rsm:8px;
+}
+html,body{height:100%;font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+body{display:flex;flex-direction:column}
+
+/* HEADER */
+.header{background:var(--bg2);padding:12px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--a5);border:2px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;position:relative}
+.online-dot{position:absolute;bottom:1px;right:1px;width:10px;height:10px;border-radius:50%;background:#5DCAA5;border:2px solid var(--bg2)}
+.header-info{flex:1}
+.header-name{font-size:14px;font-weight:500;color:var(--text)}
+.header-status{font-size:11px;color:var(--teal);margin-top:1px}
+.header-brand{font-size:11px;color:var(--text3);text-align:right}
+
+/* CHAT */
+.chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.chat::-webkit-scrollbar{width:3px}
+.chat::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* MESSAGES */
+.msg-row{display:flex;gap:8px;align-items:flex-end;max-width:88%}
+.msg-row.user{flex-direction:row-reverse;align-self:flex-end}
+.msg-row.bot{align-self:flex-start}
+.msg-ava{width:28px;height:28px;border-radius:50%;background:var(--a5);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.bubble{padding:10px 13px;border-radius:16px;font-size:13px;line-height:1.65;max-width:100%}
+.msg-row.bot .bubble{background:var(--bg3);border-radius:4px 16px 16px 16px;color:var(--text)}
+.msg-row.user .bubble{background:var(--a5);border:0.5px solid var(--amber);border-radius:16px 4px 16px 16px;color:var(--a2)}
+.bubble strong{color:var(--amber);font-weight:500}
+.bubble a{color:var(--teal);text-decoration:underline}
+.time{font-size:9px;color:var(--text3);margin-top:3px;padding:0 4px}
+.msg-row.user .time{text-align:right}
+
+/* QUICK REPLIES */
+.quick-wrap{padding:6px 14px 8px;display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0}
+.quick-btn{padding:7px 13px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid var(--amber);background:var(--a4);color:var(--amber);font-family:'Noto Sans TC',sans-serif;transition:all 0.15s;white-space:nowrap}
+.quick-btn:active{background:var(--amber);color:var(--a4);transform:scale(0.97)}
+
+/* INPUT */
+.input-wrap{background:var(--bg2);padding:10px 14px;border-top:0.5px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.input-box{flex:1;background:var(--bg3);border:0.5px solid var(--border2);border-radius:20px;padding:9px 15px;color:var(--text);font-size:13px;font-family:'Noto Sans TC',sans-serif;outline:none;resize:none;max-height:100px;line-height:1.5;overflow-y:auto}
+.input-box::placeholder{color:var(--text3)}
+.send-btn{width:38px;height:38px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+.send-btn:active{transform:scale(0.92);background:var(--a2)}
+.send-btn svg{width:16px;height:16px}
+
+/* TYPING */
+.typing{display:flex;gap:4px;align-items:center;padding:8px 12px}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:bounce 1.2s infinite ease-in-out}
+.typing span:nth-child(2){animation-delay:0.2s}
+.typing span:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+/* FLOATING BUTTON (for embedding) */
+.float-btn{position:fixed;bottom:20px;right:20px;width:54px;height:54px;border-radius:50%;background:var(--amber);border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 16px rgba(239,159,39,0.4);z-index:999;animation:floatPulse 2s ease-in-out infinite}
+@keyframes floatPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="avatar">🌿<div class="online-dot"></div></div>
+  <div class="header-info">
+    <div class="header-name">梣 · AI 學習顧問</div>
+    <div class="header-status">● 線上中 · 即時回覆</div>
+  </div>
+  <div class="header-brand">梣‧數策院<br>商業英語智學平台</div>
+</div>
+
+<div class="chat" id="chat"></div>
+
+<div class="quick-wrap" id="quick-wrap"></div>
+
+<div class="input-wrap">
+  <textarea class="input-box" id="input" placeholder="請問有什麼可以幫您？" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+  <button class="send-btn" onclick="sendMsg()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#2e1800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"></line>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+    </svg>
+  </button>
+</div>
+
+<script>
+const BACKEND = 'https://chenshuceliang-api-production-952b.up.railway.app';
+const APP_URL = 'https://grand-profiterole-c7d0fd.netlify.app';
+
+const SYSTEM_PROMPT = `你是「梣」，梣‧數策院商業英語智學平台的 AI 學習顧問。你的工作是用熱情友善的方式，幫助訪客了解平台功能，並引導他們開始免費試用或升級 Pro 方案。
+
+【關於梣‧數策院】
+- 專為採購、業務、主管設計的商業英語學習平台
+- 創辦人曾語梣，25年採購實戰經驗
+- 學習理念：不背文法、不死記單字，用情境故事快樂學英語
+
+【平台核心功能】
+1. 🔊 點擊即時發音 - 40個採購核心單字，點擊立刻播放發音
+2. 💬 採購對話實戰 - 4個真實場景（首次通話、議價談判、品質問題、展覽拜訪）
+3. 🧩 10大萬用句型 - 不背文法，只記句型框架就能開口
+4. 🎧 精選短文＋BBC - 商業英語文章，可遮住中英文練習
+5. ✍️ AI 日記糾錯 - 寫英文日記，AI 自動糾錯並給出更道地說法
+6. 🏮 節慶商務英文 - 8大傳統節慶英文問候語，附食物發音
+7. ⭐ 個人單字本 - 儲存陌生單字，不定時穿插複習
+8. 🎯 沉浸式精聽 - 全螢幕逐句播放，可關閉字幕
+
+【方案說明】
+- 免費版：3天試用全功能
+- Pro 月繳：NT$299/月（AI糾錯無限次、沉浸精聽、語速控制、完整單字本）
+- Pro 年繳：NT$1,990/年（最超值，省990元）
+- 付款方式：信用卡（Stripe）或銀行轉帳（將來銀行 8996-0975-7166-27）
+- 付款後 Email 至：yuchen1114066@gmail.com，48小時內開通
+
+【平台網址】${APP_URL}
+
+【你的溝通風格】
+- 用繁體中文回答，語氣親切友善，像朋友聊天
+- 回答簡潔，不超過150字
+- 適時提問了解對方需求
+- 積極但不強迫推銷
+- 遇到技術問題，請學員 Email 至 yuchen1114066@gmail.com
+
+請根據訪客的問題，提供最有幫助的回答。`;
+
+const QUICK_REPLIES = [
+  ['🎯 平台有什麼功能？', '請問這個平台有哪些功能？'],
+  ['💰 費用是多少？', '請問費用方案是怎麼計算的？'],
+  ['🆓 怎麼免費試用？', '我要怎麼開始免費試用？'],
+  ['📞 適合我嗎？', '我是採購人員，這個平台適合我嗎？'],
+  ['💳 如何付款？', '請問付款方式有哪些？'],
+  ['🏃 30天能開口嗎？', '真的30天就能跟外商對話嗎？'],
+];
+
+let history = [];
+let typing = false;
+
+function getTime() {
+  const d = new Date();
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function addMsg(role, text) {
+  const chat = document.getElementById('chat');
+  const isUser = role === 'user';
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + (isUser ? 'user' : 'bot');
+
+  const ava = document.createElement('div');
+  ava.className = 'msg-ava';
+  ava.textContent = isUser ? '您' : '🌿';
+  ava.style.background = isUser ? 'var(--t3)' : 'var(--a5)';
+  ava.style.color = isUser ? 'var(--teal)' : 'var(--amber)';
+
+  const col = document.createElement('div');
+  col.style.cssText = 'display:flex;flex-direction:column;max-width:100%';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+
+  const time = document.createElement('div');
+  time.className = 'time';
+  time.textContent = getTime();
+
+  col.appendChild(bubble);
+  col.appendChild(time);
+  row.appendChild(isUser ? col : ava);
+  row.appendChild(isUser ? ava : col);
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+  return bubble;
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.id = 'typing-row';
+  const ava = document.createElement('div');
+  ava.className = 'msg-ava';
+  ava.textContent = '🌿';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  row.appendChild(ava);
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing-row');
+  if(el) el.remove();
+}
+
+function setQuickReplies(replies) {
+  const wrap = document.getElementById('quick-wrap');
+  wrap.innerHTML = '';
+  replies.forEach(([label, msg]) => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = label;
+    btn.onclick = () => sendText(msg);
+    wrap.appendChild(btn);
+  });
+}
+
+async function sendText(text) {
+  if(typing || !text.trim()) return;
+  typing = true;
+  document.getElementById('input').value = '';
+  document.getElementById('quick-wrap').innerHTML = '';
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch('https://chenshuceliang-api-production-952b.up.railway.app/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, system: SYSTEM_PROMPT })
+    });
+    const data = await res.json();
+    const reply = data.result || data.reply || '抱歉，我暫時無法回應，請稍後再試或 Email 至 yuchen1114066@gmail.com';
+    hideTyping();
+    addMsg('bot', reply);
+    history.push({ role: 'assistant', content: reply });
+
+    // Show contextual quick replies
+    if(text.includes('功能') || text.includes('什麼')) {
+      setQuickReplies([['💰 費用多少？','費用方案是怎麼計算的？'],['🆓 如何試用？','我要怎麼開始免費試用？'],['💳 如何付款？','付款方式有哪些？']]);
+    } else if(text.includes('費用') || text.includes('多少') || text.includes('付款')) {
+      setQuickReplies([['🆓 開始免費試用','我要開始免費試用！'],['📲 前往平台','帶我去平台看看'],['❓ 還有問題','我還有其他問題']]);
+    } else if(text.includes('試用') || text.includes('開始')) {
+      setQuickReplies([['👉 立即前往平台','我要去平台試用了！'],['💰 費用多少？','費用方案是怎麼計算的？']]);
+    } else {
+      setQuickReplies([['💰 費用方案','費用方案是怎麼計算的？'],['🆓 開始試用','我要開始免費試用！'],['❓ 其他問題','我還有其他問題']]);
+    }
+  } catch(e) {
+    hideTyping();
+    addMsg('bot', '抱歉，AI 客服暫時連線不穩，請直接 Email 至 **yuchen1114066@gmail.com**，我們會在24小時內回覆您！');
+    setQuickReplies([['📧 寄信詢問','如何聯繫你們？']]);
+  }
+  typing = false;
+}
+
+function sendMsg() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if(text) sendText(text);
+  input.value = '';
+  autoResize(input);
+}
+
+function handleKey(e) {
+  if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// Init
+window.addEventListener('load', async () => {
+  await new Promise(r => setTimeout(r, 600));
+  addMsg('bot', '您好！我是**梣**，梣‧數策院的 AI 學習顧問 🌿\n\n我可以幫您了解平台功能、試用方式、費用方案，請問有什麼可以幫到您的呢？');
+  await new Promise(r => setTimeout(r, 800));
+  setQuickReplies(QUICK_REPLIES);
+});
+</script>
+</body>
+</html>
